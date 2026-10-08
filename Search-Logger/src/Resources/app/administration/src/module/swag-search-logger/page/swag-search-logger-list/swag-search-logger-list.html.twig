@@ -1,16 +1,17 @@
 <sw-page>
     <template #content>
-        <sw-card title="Suchanfragen">
+        <sw-card title="Suchanfragen" :isLoading="isLoading">
             <sw-data-grid
-                v-if="items"
+                v-if="items.length > 0"
                 :dataSource="items"
                 :columns="[
-                    { property: 'term', label: 'Suchbegriff' },
-                    { property: 'resultCount', label: 'Treffer' },
-                    { property: 'createdAt', label: 'Datum' }
+                    { property: 'term', label: 'Suchbegriff', allowResize: true },
+                    { property: 'result_count', label: 'Treffer', allowResize: true },
+                    { property: 'created_at', label: 'Datum', allowResize: true }
                 ]"
                 :showSelection="false"
             />
+            <p v-else>Keine Suchanfragen vorhanden.</p>
         </sw-card>
     </template>
 </sw-page>
