@@ -11,5 +11,13 @@
             <argument type="service" id="request_stack"/>
             <tag name="kernel.event_subscriber"/>
         </service>
+
+        <service id="Swag\SearchLogger\Controller\SearchLogController">
+            <argument type="service" id="Doctrine\DBAL\Connection"/>
+            <call method="setContainer">
+                <argument type="service" id="service_container"/>
+            </call>
+            <tag name="controller.service_arguments"/>
+        </service>
     </services>
 </container>
