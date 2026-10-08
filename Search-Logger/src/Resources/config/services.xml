@@ -8,6 +8,7 @@
     <services>
         <service id="Swag\SearchLogger\Subscriber\SearchSubscriber">
             <argument type="service" id="Doctrine\DBAL\Connection"/>
+            <argument type="service" id="request_stack"/>
             <tag name="kernel.event_subscriber"/>
         </service>
     </services>
