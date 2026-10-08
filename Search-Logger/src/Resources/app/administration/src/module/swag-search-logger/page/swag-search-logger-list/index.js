@@ -6,12 +6,22 @@ Shopware.Component.register('swag-search-logger-list', {
     data() {
         return {
             items: [],
-            isLoading: false
+            isLoading: false,
+            searchTerm: '',
+            sortBy: 'search_count',
+            sortDirection: 'DESC',
+            searchDebounce: null
         };
     },
 
     created() {
         this.loadItems();
+    },
+
+    beforeUnmount() {
+        if (this.searchDebounce) {
+            clearTimeout(this.searchDebounce);
+        }
     },
 
     methods: {
@@ -20,14 +30,13 @@ Shopware.Component.register('swag-search-logger-list', {
             const httpClient = Shopware.Application.getContainer('init').httpClient;
 
             try {
-                const response = await httpClient.get(
-                    '/_action/swag-search-log/list',
-                    {
-                        headers: {
-                            Authorization: `Bearer ${Shopware.Context.api.authToken.access}`
-                        }
+                const response = await httpClient.get('/_action/swag-search-log/list', {
+                    params: {
+                        term: this.searchTerm,
+                        sortBy: this.sortBy,
+                        sortDirection: this.sortDirection
                     }
-                );
+                });
 
                 this.items = response.data.data ?? [];
             } catch (error) {
@@ -36,6 +45,28 @@ Shopware.Component.register('swag-search-logger-list', {
             } finally {
                 this.isLoading = false;
             }
+        },
+
+        onSearchTermChange() {
+            if (this.searchDebounce) {
+                clearTimeout(this.searchDebounce);
+            }
+            this.searchDebounce = setTimeout(() => {
+                this.loadItems();
+            }, 300);
+        },
+
+        onSort(column) {
+            const property = column.dataIndex ?? column.property;
+
+            if (this.sortBy === property) {
+                this.sortDirection = this.sortDirection === 'ASC' ? 'DESC' : 'ASC';
+            } else {
+                this.sortBy = property;
+                this.sortDirection = 'DESC';
+            }
+
+            this.loadItems();
         }
     }
 });
