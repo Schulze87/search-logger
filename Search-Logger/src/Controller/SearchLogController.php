@@ -23,12 +23,32 @@ class SearchLogController extends AbstractController
     public function list(Request $request): JsonResponse
     {
         $term = trim((string) $request->query->get('term', ''));
+        $dateFrom = trim((string) $request->query->get('dateFrom', ''));
+        $dateTo = trim((string) $request->query->get('dateTo', ''));
         $sortBy = (string) $request->query->get('sortBy', 'created_at');
         $sortDirection = strtoupper((string) $request->query->get('sortDirection', 'DESC')) === 'ASC' ? 'ASC' : 'DESC';
 
-        $allowedSortFields = ['term', 'result_count', 'created_at', 'search_count'];
+        $allowedSortFields = ['term', 'search_count', 'result_count', 'last_searched'];
         if (!in_array($sortBy, $allowedSortFields, true)) {
-            $sortBy = 'created_at';
+            $sortBy = 'last_searched';
+        }
+
+        $where = [];
+        $params = [];
+
+        if ($term !== '') {
+            $where[] = 'term LIKE :term';
+            $params['term'] = '%' . $term . '%';
+        }
+
+        if ($dateFrom !== '') {
+            $where[] = 'created_at >= :dateFrom';
+            $params['dateFrom'] = $dateFrom . ' 00:00:00.000';
+        }
+
+        if ($dateTo !== '') {
+            $where[] = 'created_at <= :dateTo';
+            $params['dateTo'] = $dateTo . ' 23:59:59.999';
         }
 
         $sql = '
@@ -40,11 +60,8 @@ class SearchLogController extends AbstractController
             FROM swag_search_log
         ';
 
-        $params = [];
-
-        if ($term !== '') {
-            $sql .= ' WHERE term LIKE :term ';
-            $params['term'] = '%' . $term . '%';
+        if (!empty($where)) {
+            $sql .= ' WHERE ' . implode(' AND ', $where);
         }
 
         $sql .= ' GROUP BY term ';
