@@ -5,48 +5,36 @@ namespace Swag\SearchLogger\Migration;
 use Doctrine\DBAL\Connection;
 use Shopware\Core\Framework\Migration\MigrationStep;
 
-class Migration1700000001ReplaceTermIndex extends MigrationStep
+class Migration1700000000CreateSearchLog extends MigrationStep
 {
     public function getCreationTimestamp(): int
     {
-        return 1700000001;
+        return 1700000000;
     }
 
     public function update(Connection $connection): void
     {
-        // Alten Index löschen, falls vorhanden
-        $indexes = $connection->fetchAllAssociative('SHOW INDEX FROM swag_search_log');
-        foreach ($indexes as $index) {
-            if (($index['Key_name'] ?? '') === 'idx.term') {
-                $connection->executeStatement('DROP INDEX idx.term ON swag_search_log');
-                break;
-            }
+        $schemaManager = $connection->createSchemaManager();
+        if ($schemaManager->tablesExist(['swag_search_log'])) {
+            return;
         }
 
-        // Neuen zusammengesetzten Index anlegen, falls nicht vorhanden
-        $indexes = $connection->fetchAllAssociative('SHOW INDEX FROM swag_search_log');
-        foreach ($indexes as $index) {
-            if (($index['Key_name'] ?? '') === 'idx_search_log_lookup') {
-                return;
-            }
-        }
-
-        $connection->executeStatement(
-            'CREATE INDEX idx_search_log_lookup ON swag_search_log (term, sales_channel_id, created_at)'
-        );
+        $connection->executeStatement('
+            CREATE TABLE `swag_search_log` (
+                `id` BINARY(16) NOT NULL,
+                `term` VARCHAR(255) NOT NULL,
+                `result_count` INT NOT NULL DEFAULT 0,
+                `sales_channel_id` BINARY(16) NULL,
+                `created_at` DATETIME(3) NOT NULL,
+                `updated_at` DATETIME(3) NULL,
+                PRIMARY KEY (`id`),
+                KEY `idx_search_log_lookup` (`term`, `sales_channel_id`, `created_at`)
+            ) ENGINE=InnoDB DEFAULT CHARSET=utf8mb4 COLLATE=utf8mb4_unicode_ci;
+        ');
     }
 
     public function updateDestructive(Connection $connection): void
     {
-        // Beim Rückgängigmachen den neuen Index entfernen und den alten wiederherstellen
-        $indexes = $connection->fetchAllAssociative('SHOW INDEX FROM swag_search_log');
-        foreach ($indexes as $index) {
-            if (($index['Key_name'] ?? '') === 'idx_search_log_lookup') {
-                $connection->executeStatement('DROP INDEX idx_search_log_lookup ON swag_search_log');
-                break;
-            }
-        }
-
-        $connection->executeStatement('CREATE INDEX idx.term ON swag_search_log (term)');
+        $connection->executeStatement('DROP TABLE IF EXISTS `swag_search_log`');
     }
 }
