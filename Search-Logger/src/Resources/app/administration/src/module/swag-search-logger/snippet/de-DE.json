@@ -1,0 +1,8 @@
+{
+    "swag-search-logger": {
+        "general": {
+            "mainMenuItemGeneral": "Suchanfragen",
+            "description": "Protokolliert Suchanfragen aus dem Storefront"
+        }
+    }
+}
