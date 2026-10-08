@@ -8,9 +8,11 @@ Shopware.Component.register('swag-search-logger-list', {
             items: [],
             isLoading: false,
             searchTerm: '',
-            sortBy: 'search_count',
+            dateFrom: null,
+            dateTo: null,
+            sortBy: 'last_searched',
             sortDirection: 'DESC',
-            searchDebounce: null
+            filterDebounce: null
         };
     },
 
@@ -19,8 +21,8 @@ Shopware.Component.register('swag-search-logger-list', {
     },
 
     beforeUnmount() {
-        if (this.searchDebounce) {
-            clearTimeout(this.searchDebounce);
+        if (this.filterDebounce) {
+            clearTimeout(this.filterDebounce);
         }
     },
 
@@ -33,6 +35,8 @@ Shopware.Component.register('swag-search-logger-list', {
                 const response = await httpClient.get('/_action/swag-search-log/list', {
                     params: {
                         term: this.searchTerm,
+                        dateFrom: this.dateFrom,
+                        dateTo: this.dateTo,
                         sortBy: this.sortBy,
                         sortDirection: this.sortDirection
                     }
@@ -48,12 +52,16 @@ Shopware.Component.register('swag-search-logger-list', {
         },
 
         onSearchTermChange() {
-            if (this.searchDebounce) {
-                clearTimeout(this.searchDebounce);
+            if (this.filterDebounce) {
+                clearTimeout(this.filterDebounce);
             }
-            this.searchDebounce = setTimeout(() => {
+            this.filterDebounce = setTimeout(() => {
                 this.loadItems();
             }, 300);
+        },
+
+        onFilterChange() {
+            this.loadItems();
         },
 
         onSort(column) {
@@ -66,6 +74,13 @@ Shopware.Component.register('swag-search-logger-list', {
                 this.sortDirection = 'DESC';
             }
 
+            this.loadItems();
+        },
+
+        resetFilters() {
+            this.searchTerm = '';
+            this.dateFrom = null;
+            this.dateTo = null;
             this.loadItems();
         }
     }
