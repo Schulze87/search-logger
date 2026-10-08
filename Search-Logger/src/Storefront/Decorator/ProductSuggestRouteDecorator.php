@@ -40,7 +40,6 @@ class ProductSuggestRouteDecorator extends ResolvedCriteriaProductSuggestRoute
         $salesChannelId = $context->getSalesChannelId();
 
         try {
-            // Prüfen, ob derselbe Begriff in den letzten 2 Sekunden bereits gespeichert wurde
             $existingId = $this->connection->fetchOne(
                 'SELECT id FROM swag_search_log
                  WHERE term = :term
@@ -55,7 +54,6 @@ class ProductSuggestRouteDecorator extends ResolvedCriteriaProductSuggestRoute
             );
 
             if ($existingId !== false && $existingId !== null) {
-                // Vorhandenen Eintrag aktualisieren statt neuen anlegen
                 $this->connection->update(
                     'swag_search_log',
                     [
@@ -68,7 +66,6 @@ class ProductSuggestRouteDecorator extends ResolvedCriteriaProductSuggestRoute
                 return $response;
             }
 
-            // Neuer Eintrag
             $this->connection->insert('swag_search_log', [
                 'id' => Uuid::randomBytes(),
                 'term' => $term,
