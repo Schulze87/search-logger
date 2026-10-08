@@ -19,5 +19,11 @@
             </call>
             <tag name="controller.service_arguments"/>
         </service>
+
+        <service id="Swag\SearchLogger\Storefront\Decorator\ProductSuggestRouteDecorator">
+            <argument type="service" id="Shopware\Core\Content\Product\SalesChannel\Suggest\ProductSuggestRoute.inner"/>
+            <argument type="service" id="Doctrine\DBAL\Connection"/>
+            <tag name="container.service_decorator"/>
+        </service>
     </services>
 </container>
