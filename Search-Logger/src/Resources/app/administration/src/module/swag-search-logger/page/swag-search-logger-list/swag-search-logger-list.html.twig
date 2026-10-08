@@ -1,15 +1,26 @@
 <sw-page>
     <template #content>
         <sw-card title="Suchanfragen" :isLoading="isLoading">
+            <sw-text-field
+                v-model="searchTerm"
+                label="Nach Suchbegriff filtern"
+                placeholder="z. B. Bewässerungsmatte"
+                @update:modelValue="onSearchTermChange"
+            />
+
             <sw-data-grid
                 v-if="items.length > 0"
                 :dataSource="items"
                 :columns="[
-                    { property: 'term', label: 'Suchbegriff', allowResize: true },
-                    { property: 'result_count', label: 'Treffer', allowResize: true },
-                    { property: 'created_at', label: 'Datum', allowResize: true }
+                    { property: 'term', label: 'Suchbegriff', allowResize: true, sortable: true },
+                    { property: 'search_count', label: 'Anzahl Suchen', allowResize: true, sortable: true },
+                    { property: 'result_count', label: 'Treffer', allowResize: true, sortable: true },
+                    { property: 'last_searched', label: 'Zuletzt gesucht', allowResize: true, sortable: true }
                 ]"
                 :showSelection="false"
+                :sortBy="sortBy"
+                :sortDirection="sortDirection"
+                @column-sort="onSort"
             />
             <p v-else>Keine Suchanfragen vorhanden.</p>
         </sw-card>
