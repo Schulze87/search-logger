@@ -1,0 +1,16 @@
+<sw-page>
+    <template #content>
+        <sw-card title="Suchanfragen">
+            <sw-data-grid
+                v-if="items"
+                :dataSource="items"
+                :columns="[
+                    { property: 'term', label: 'Suchbegriff' },
+                    { property: 'resultCount', label: 'Treffer' },
+                    { property: 'createdAt', label: 'Datum' }
+                ]"
+                :showSelection="false"
+            />
+        </sw-card>
+    </template>
+</sw-page>
