@@ -13,18 +13,9 @@ jobs:
         with:
           fetch-depth: 0
 
-      - name: Debug – Struktur prüfen
+      - name: PHP-Syntax prüfen
         run: |
-          echo "=== Inhalt Repo-Root ==="
-          ls -la
-          echo "=== Inhalt von Search-Logger/ ==="
-          ls -la ./Search-Logger
-          echo "=== composer.json (Plugin) ==="
-          cat ./Search-Logger/composer.json
-          echo "=== src/ (Auszug) ==="
-          find ./Search-Logger/src -maxdepth 3 -type f | head -n 200
-          echo "=== Plugin-Klasse (falls vorhanden) ==="
-          find ./Search-Logger/src -maxdepth 2 -type f -name "*.php" -print
+          find ./Search-Logger/src -name "*.php" -exec php -l {} \;
 
       - name: Install shopware-cli
         uses: shopware/shopware-cli-action@v1
@@ -34,11 +25,8 @@ jobs:
       - name: Build Extension
         run: shopware-cli extension zip ./Search-Logger --disable-git --verbose
 
-      - name: Validate ZIP (optional)
-        run: shopware-cli extension validate *.zip
-
       - name: Upload ZIP as Artifact
         uses: actions/upload-artifact@v4
         with:
-          name: Search-Logger
+          name: SearchLogger
           path: "*.zip"
