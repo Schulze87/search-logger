@@ -29,12 +29,12 @@ class Migration1700000002ReplaceTermIndex extends MigrationStep
         }
 
         if ($hasOldIndex) {
-            $connection->executeStatement('DROP INDEX idx.term ON swag_search_log');
+            $connection->executeStatement('DROP INDEX `idx.term` ON `swag_search_log`');
         }
 
         if (!$hasNewIndex) {
             $connection->executeStatement(
-                'CREATE INDEX idx_search_log_lookup ON swag_search_log (term, sales_channel_id, created_at)'
+                'CREATE INDEX `idx_search_log_lookup` ON `swag_search_log` (`term`, `sales_channel_id`, `created_at`)'
             );
         }
     }
