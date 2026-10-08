@@ -1,0 +1,8 @@
+{
+    "swag-search-logger": {
+        "general": {
+            "mainMenuItemGeneral": "Search Queries",
+            "description": "Logs search queries from the storefront"
+        }
+    }
+}
