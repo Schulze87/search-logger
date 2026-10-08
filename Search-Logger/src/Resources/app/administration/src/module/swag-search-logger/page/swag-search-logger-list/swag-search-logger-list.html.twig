@@ -1,12 +1,32 @@
 <sw-page>
     <template #content>
         <sw-card title="Suchanfragen" :isLoading="isLoading">
-            <sw-text-field
-                v-model="searchTerm"
-                label="Nach Suchbegriff filtern"
-                placeholder="z. B. Bewässerungsmatte"
-                @update:modelValue="onSearchTermChange"
-            />
+            <sw-container columns="1fr 1fr 1fr" gap="16px">
+                <sw-text-field
+                    v-model="searchTerm"
+                    label="Nach Suchbegriff filtern"
+                    placeholder="z. B. Bewässerungsmatte"
+                    @update:modelValue="onSearchTermChange"
+                />
+
+                <sw-datepicker
+                    v-model="dateFrom"
+                    label="Von"
+                    dateType="date"
+                    @update:modelValue="onFilterChange"
+                />
+
+                <sw-datepicker
+                    v-model="dateTo"
+                    label="Bis"
+                    dateType="date"
+                    @update:modelValue="onFilterChange"
+                />
+            </sw-container>
+
+            <sw-button @click="resetFilters">
+                Filter zurücksetzen
+            </sw-button>
 
             <sw-data-grid
                 v-if="items.length > 0"
