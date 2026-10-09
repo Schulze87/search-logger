@@ -153,17 +153,50 @@ class SearchLogController extends AbstractController
     )]
     public function delete(Request $request): JsonResponse
     {
-        $term = trim((string) $request->query->get('term', ''));
+        $terms = $this->extractTerms($request);
 
-        if ($term === '') {
-            return new JsonResponse(['success' => false, 'message' => 'Kein Suchbegriff angegeben'], 400);
+        if (empty($terms)) {
+            return new JsonResponse(['success' => false, 'message' => 'Keine Suchbegriffe angegeben'], 400);
         }
 
-        $deleted = $this->connection->delete('swag_search_log', [
-            'term' => $term,
-        ]);
+        $deleted = $this->connection->executeStatement(
+            'DELETE FROM swag_search_log WHERE term IN (:terms)',
+            ['terms' => $terms],
+            ['terms' => \Doctrine\DBAL\ArrayParameterType::STRING]
+        );
 
-        return new JsonResponse(['success' => true, 'deleted' => $deleted]);
+        return new JsonResponse([
+            'success' => true,
+            'deleted' => $deleted,
+            'terms' => count($terms),
+        ]);
+    }
+
+    /**
+     * @return array<int, string>
+     */
+    private function extractTerms(Request $request): array
+    {
+        // Einzelner Begriff (alte Route)
+        $term = trim((string) $request->query->get('term', ''));
+        if ($term !== '') {
+            return [$term];
+        }
+
+        // Mehrere Begriffe (neue Route)
+        $terms = $request->query->all('terms');
+        if (!is_array($terms)) {
+            return [];
+        }
+
+        $result = [];
+        foreach ($terms as $entry) {
+            if (is_string($entry) && trim($entry) !== '') {
+                $result[] = trim($entry);
+            }
+        }
+
+        return array_values(array_unique($result));
     }
 
     private function loadMapping(): void
