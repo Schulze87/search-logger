@@ -35,6 +35,8 @@ class SearchLogController extends AbstractController
         $dateFrom = substr(trim((string) $request->query->get('dateFrom', '')), 0, 10);
         $dateTo = substr(trim((string) $request->query->get('dateTo', '')), 0, 10);
         $onlyZeroResults = $request->query->get('onlyZeroResults') === 'true';
+        $salesChannelFilter = strtolower(trim((string) $request->query->get('salesChannelId', '')));
+        $languageFilter = strtolower(trim((string) $request->query->get('languageId', '')));
 
         $sortBy = (string) $request->query->get('sortBy', 'last_searched');
         $sortDirection = strtoupper((string) $request->query->get('sortDirection', 'DESC')) === 'ASC' ? 'ASC' : 'DESC';
@@ -60,6 +62,16 @@ class SearchLogController extends AbstractController
         if ($dateTo !== '') {
             $where[] = 'created_at <= :dateTo';
             $params['dateTo'] = $dateTo . ' 23:59:59.999';
+        }
+
+        if ($salesChannelFilter !== '') {
+            $where[] = 'sales_channel_id = :salesChannelId';
+            $params['salesChannelId'] = hex2bin($salesChannelFilter);
+        }
+
+        if ($languageFilter !== '') {
+            $where[] = 'language_id = :languageId';
+            $params['languageId'] = hex2bin($languageFilter);
         }
 
         $sql = '
@@ -109,6 +121,28 @@ class SearchLogController extends AbstractController
         unset($row);
 
         return new JsonResponse(['data' => $rows]);
+    }
+
+    #[Route(
+        path: '/api/_action/swag-search-log/filter-options',
+        name: 'api.action.swag_search_log.filter_options',
+        methods: ['GET'],
+        defaults: ['_routeScope' => ['administration']]
+    )]
+    public function filterOptions(): JsonResponse
+    {
+        return new JsonResponse([
+            'salesChannels' => array_map(
+                static fn (string $id, string $name): array => ['id' => $id, 'name' => $name],
+                array_keys($this->salesChannelMap),
+                array_values($this->salesChannelMap)
+            ),
+            'languages' => array_map(
+                static fn (string $id, string $name): array => ['id' => $id, 'name' => $name],
+                array_keys($this->languageMap),
+                array_values($this->languageMap)
+            ),
+        ]);
     }
 
     #[Route(
