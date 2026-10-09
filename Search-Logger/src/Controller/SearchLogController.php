@@ -23,9 +23,11 @@ class SearchLogController extends AbstractController
     public function list(Request $request): JsonResponse
     {
         $term = trim((string) $request->query->get('term', ''));
-        $dateFrom = trim((string) $request->query->get('dateFrom', ''));
-        $dateTo = trim((string) $request->query->get('dateTo', ''));
-        $sortBy = (string) $request->query->get('sortBy', 'created_at');
+        $dateFrom = substr(trim((string) $request->query->get('dateFrom', '')), 0, 10);
+        $dateTo = substr(trim((string) $request->query->get('dateTo', '')), 0, 10);
+        $onlyZeroResults = $request->query->get('onlyZeroResults') === 'true';
+
+        $sortBy = (string) $request->query->get('sortBy', 'last_searched');
         $sortDirection = strtoupper((string) $request->query->get('sortDirection', 'DESC')) === 'ASC' ? 'ASC' : 'DESC';
 
         $allowedSortFields = ['term', 'search_count', 'result_count', 'last_searched'];
@@ -65,11 +67,37 @@ class SearchLogController extends AbstractController
         }
 
         $sql .= ' GROUP BY term ';
+
+        if ($onlyZeroResults) {
+            $sql .= ' HAVING MAX(result_count) = 0 ';
+        }
+
         $sql .= ' ORDER BY ' . $sortBy . ' ' . $sortDirection . ' ';
         $sql .= ' LIMIT 500 ';
 
         $rows = $this->connection->fetchAllAssociative($sql, $params);
 
         return new JsonResponse(['data' => $rows]);
+    }
+
+    #[Route(
+        path: '/api/_action/swag-search-log/delete',
+        name: 'api.action.swag_search_log.delete',
+        methods: ['DELETE'],
+        defaults: ['_routeScope' => ['administration']]
+    )]
+    public function delete(Request $request): JsonResponse
+    {
+        $term = trim((string) $request->query->get('term', ''));
+
+        if ($term === '') {
+            return new JsonResponse(['success' => false, 'message' => 'Kein Suchbegriff angegeben'], 400);
+        }
+
+        $deleted = $this->connection->delete('swag_search_log', [
+            'term' => $term,
+        ]);
+
+        return new JsonResponse(['success' => true, 'deleted' => $deleted]);
     }
 }
