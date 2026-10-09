@@ -5,7 +5,7 @@
                 <sw-text-field
                     v-model="searchTerm"
                     label="Nach Suchbegriff filtern"
-                    placeholder="z. B. Lukas ist toll"
+                    placeholder="z. B. Bewässerungsmatte"
                     @update:modelValue="onSearchTermChange"
                 />
 
@@ -26,7 +26,6 @@
                 <sw-switch-field
                     v-model="onlyZeroResults"
                     label="Nur ohne Ergebnisse"
-                    @update:modelValue="onFilterChange"
                 />
             </sw-container>
 
@@ -60,7 +59,6 @@
             <p v-else>Keine Suchanfragen vorhanden.</p>
         </sw-card>
 
-        <!-- NEU: Bestätigungsdialog -->
         <sw-modal
             v-if="showDeleteModal"
             title="Suchbegriff löschen"
