@@ -38,18 +38,21 @@ class ProductSuggestRouteDecorator extends ResolvedCriteriaProductSuggestRoute
 
         $total = $response->getListingResult()->getTotal();
         $salesChannelId = $context->getSalesChannelId();
+        $languageId = $context->getLanguageId();
 
         try {
             $existingId = $this->connection->fetchOne(
                 'SELECT id FROM swag_search_log
                  WHERE term = :term
                    AND sales_channel_id = :salesChannelId
+                   AND language_id = :languageId
                    AND created_at >= DATE_SUB(NOW(3), INTERVAL 2 SECOND)
                  ORDER BY created_at DESC
                  LIMIT 1',
                 [
                     'term' => $term,
                     'salesChannelId' => Uuid::fromHexToBytes($salesChannelId),
+                    'languageId' => Uuid::fromHexToBytes($languageId),
                 ]
             );
 
@@ -71,6 +74,7 @@ class ProductSuggestRouteDecorator extends ResolvedCriteriaProductSuggestRoute
                 'term' => $term,
                 'result_count' => $total,
                 'sales_channel_id' => Uuid::fromHexToBytes($salesChannelId),
+                'language_id' => Uuid::fromHexToBytes($languageId),
                 'created_at' => (new \DateTime())->format('Y-m-d H:i:s.v'),
             ]);
         } catch (\Throwable $e) {
