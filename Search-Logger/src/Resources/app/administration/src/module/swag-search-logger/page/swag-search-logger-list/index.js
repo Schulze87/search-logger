@@ -11,6 +11,10 @@ Shopware.Component.register('swag-search-logger-list', {
             dateFrom: null,
             dateTo: null,
             onlyZeroResults: false,
+            salesChannelId: null,
+            languageId: null,
+            salesChannelOptions: [],
+            languageOptions: [],
             sortBy: 'last_searched',
             sortDirection: 'DESC',
             filterDebounce: null,
@@ -19,13 +23,38 @@ Shopware.Component.register('swag-search-logger-list', {
         };
     },
 
+    computed: {
+        salesChannelSelectOptions() {
+            return this.salesChannelOptions.map((option) => ({
+                value: option.id,
+                label: option.name
+            }));
+        },
+
+        languageSelectOptions() {
+            return this.languageOptions.map((option) => ({
+                value: option.id,
+                label: option.name
+            }));
+        }
+    },
+
     watch: {
         onlyZeroResults() {
+            this.loadItems();
+        },
+
+        salesChannelId() {
+            this.loadItems();
+        },
+
+        languageId() {
             this.loadItems();
         }
     },
 
     created() {
+        this.loadFilterOptions();
         this.loadItems();
     },
 
@@ -36,6 +65,18 @@ Shopware.Component.register('swag-search-logger-list', {
     },
 
     methods: {
+        async loadFilterOptions() {
+            const httpClient = Shopware.Application.getContainer('init').httpClient;
+
+            try {
+                const response = await httpClient.get('/_action/swag-search-log/filter-options');
+                this.salesChannelOptions = response.data.salesChannels ?? [];
+                this.languageOptions = response.data.languages ?? [];
+            } catch (error) {
+                console.error('Fehler beim Laden der Filteroptionen:', error);
+            }
+        },
+
         async loadItems() {
             this.isLoading = true;
             const httpClient = Shopware.Application.getContainer('init').httpClient;
@@ -47,6 +88,8 @@ Shopware.Component.register('swag-search-logger-list', {
                         dateFrom: this.normalizeDate(this.dateFrom),
                         dateTo: this.normalizeDate(this.dateTo),
                         onlyZeroResults: this.onlyZeroResults,
+                        salesChannelId: this.salesChannelId,
+                        languageId: this.languageId,
                         sortBy: this.sortBy,
                         sortDirection: this.sortDirection
                     }
@@ -103,6 +146,8 @@ Shopware.Component.register('swag-search-logger-list', {
             this.dateFrom = null;
             this.dateTo = null;
             this.onlyZeroResults = false;
+            this.salesChannelId = null;
+            this.languageId = null;
             this.loadItems();
         },
 
