@@ -13,7 +13,11 @@ Shopware.Component.register('swag-search-logger-list', {
             onlyZeroResults: false,
             sortBy: 'last_searched',
             sortDirection: 'DESC',
-            filterDebounce: null
+            filterDebounce: null,
+
+            // NEU: Für den Löschen-Dialog
+            showDeleteModal: false,
+            termToDelete: null
         };
     },
 
@@ -54,23 +58,15 @@ Shopware.Component.register('swag-search-logger-list', {
         },
 
         normalizeDate(value) {
-            if (!value) {
-                return null;
-            }
-
+            if (!value) return null;
             const text = String(value);
             const match = text.match(/^\d{4}-\d{2}-\d{2}/);
-
             return match ? match[0] : null;
         },
 
         onSearchTermChange() {
-            if (this.filterDebounce) {
-                clearTimeout(this.filterDebounce);
-            }
-            this.filterDebounce = setTimeout(() => {
-                this.loadItems();
-            }, 300);
+            if (this.filterDebounce) clearTimeout(this.filterDebounce);
+            this.filterDebounce = setTimeout(() => this.loadItems(), 300);
         },
 
         onFilterChange() {
@@ -79,14 +75,12 @@ Shopware.Component.register('swag-search-logger-list', {
 
         onSort(column) {
             const property = column.dataIndex ?? column.property;
-
             if (this.sortBy === property) {
                 this.sortDirection = this.sortDirection === 'ASC' ? 'DESC' : 'ASC';
             } else {
                 this.sortBy = property;
                 this.sortDirection = 'DESC';
             }
-
             this.loadItems();
         },
 
@@ -98,27 +92,35 @@ Shopware.Component.register('swag-search-logger-list', {
             this.loadItems();
         },
 
-        async onDelete(term) {
-            const confirmed = await this.$swConfirm({
-                title: 'Suchbegriff löschen',
-                message: `Alle Einträge für "${term}" werden gelöscht. Fortfahren?`
-            });
+        // NEU: Löschen-Button geklickt -> Dialog öffnen
+        onDelete(term) {
+            this.termToDelete = term;
+            this.showDeleteModal = true;
+        },
 
-            if (!confirmed) {
-                return;
-            }
+        // NEU: Dialog schließen ohne Löschen
+        onCloseDeleteModal() {
+            this.showDeleteModal = false;
+            this.termToDelete = null;
+        },
+
+        // NEU: Löschen bestätigen
+        async onConfirmDelete() {
+            if (!this.termToDelete) return;
 
             const httpClient = Shopware.Application.getContainer('init').httpClient;
 
             try {
                 await httpClient.delete('/_action/swag-search-log/delete', {
-                    params: { term }
+                    params: { term: this.termToDelete }
                 });
 
                 this.$createNotificationSuccess({
-                    message: `Alle Einträge für "${term}" wurden gelöscht.`
+                    message: `Alle Einträge für "${this.termToDelete}" wurden gelöscht.`
                 });
 
+                this.showDeleteModal = false;
+                this.termToDelete = null;
                 this.loadItems();
             } catch (error) {
                 console.error('Fehler beim Löschen:', error);
