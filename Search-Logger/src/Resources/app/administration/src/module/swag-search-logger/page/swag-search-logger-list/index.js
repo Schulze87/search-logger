@@ -19,7 +19,9 @@ Shopware.Component.register('swag-search-logger-list', {
             sortDirection: 'DESC',
             filterDebounce: null,
             showDeleteModal: false,
-            termToDelete: null
+            termToDelete: null,
+            selectedItems: {},
+            showBulkDeleteModal: false
         };
     },
 
@@ -36,6 +38,14 @@ Shopware.Component.register('swag-search-logger-list', {
                 value: option.id,
                 label: option.name
             }));
+        },
+
+        selectedCount() {
+            return Object.keys(this.selectedItems).length;
+        },
+
+        selectedTerms() {
+            return Object.values(this.selectedItems).map((item) => item.term);
         }
     },
 
@@ -88,9 +98,11 @@ Shopware.Component.register('swag-search-logger-list', {
                 });
 
                 this.items = response.data.data ?? [];
+                this.selectedItems = {};
             } catch (error) {
                 console.error('Fehler beim Laden der Suchanfragen:', error);
                 this.items = [];
+                this.selectedItems = {};
             } finally {
                 this.isLoading = false;
             }
@@ -151,6 +163,57 @@ Shopware.Component.register('swag-search-logger-list', {
             this.salesChannelId = null;
             this.languageId = null;
             this.loadItems();
+        },
+
+        onSelectionChange(selection) {
+            this.selectedItems = selection;
+        },
+
+        onBulkDelete() {
+            if (this.selectedCount === 0) {
+                return;
+            }
+
+            this.showBulkDeleteModal = true;
+        },
+
+        onCloseBulkDeleteModal() {
+            this.showBulkDeleteModal = false;
+        },
+
+        async onConfirmBulkDelete() {
+            if (this.selectedCount === 0) {
+                return;
+            }
+
+            const httpClient = Shopware.Application.getContainer('init').httpClient;
+            const terms = this.selectedTerms;
+
+            this.showBulkDeleteModal = false;
+
+            try {
+                await httpClient.delete('/_action/swag-search-log/delete', {
+                    params: { terms },
+                    paramsSerializer: (params) => {
+                        const searchParams = new URLSearchParams();
+                        (params.terms ?? []).forEach((term) => {
+                            searchParams.append('terms[]', term);
+                        });
+                        return searchParams.toString();
+                    }
+                });
+
+                await this.loadItems();
+
+                this.createNotificationSuccess({
+                    message: `${terms.length} Begriff(e) wurden gelöscht.`
+                });
+            } catch (error) {
+                console.error('Fehler beim Löschen:', error);
+                this.createNotificationError({
+                    message: 'Die Einträge konnten nicht gelöscht werden.'
+                });
+            }
         },
 
         onDelete(term) {
