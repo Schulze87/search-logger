@@ -1,7 +1,7 @@
 <sw-page>
     <template #content>
         <sw-card title="Suchanfragen" :isLoading="isLoading">
-            <sw-container columns="1fr 1fr 1fr 1fr" gap="16px">
+            <sw-container columns="1fr 1fr 1fr" gap="16px">
                 <sw-text-field
                     v-model="searchTerm"
                     label="Nach Suchbegriff filtern"
@@ -21,6 +21,24 @@
                     label="Bis"
                     dateType="date"
                     @update:modelValue="onFilterChange"
+                />
+            </sw-container>
+
+            <sw-container columns="1fr 1fr 1fr" gap="16px">
+                <sw-single-select
+                    v-model="salesChannelId"
+                    label="Verkaufskanal"
+                    :options="salesChannelSelectOptions"
+                    :clearable="true"
+                    placeholder="Alle Verkaufskanäle"
+                />
+
+                <sw-single-select
+                    v-model="languageId"
+                    label="Sprache"
+                    :options="languageSelectOptions"
+                    :clearable="true"
+                    placeholder="Alle Sprachen"
                 />
 
                 <sw-switch-field
