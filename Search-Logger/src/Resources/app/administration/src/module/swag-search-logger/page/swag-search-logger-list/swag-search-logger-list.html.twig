@@ -5,7 +5,7 @@
                 <sw-text-field
                     v-model="searchTerm"
                     label="Nach Suchbegriff filtern"
-                    placeholder="z. B. Bewässerungsmatte"
+                    placeholder="z. B. Lukas ist toll"
                     @update:modelValue="onSearchTermChange"
                 />
 
@@ -49,9 +49,19 @@
                 />
             </sw-container>
 
-            <sw-button @click="resetFilters">
-                Filter zurücksetzen
-            </sw-button>
+            <sw-container columns="1fr 1fr" gap="16px">
+                <sw-button @click="resetFilters">
+                    Filter zurücksetzen
+                </sw-button>
+
+                <sw-button
+                    variant="danger"
+                    :disabled="selectedCount === 0"
+                    @click="onBulkDelete"
+                >
+                    Ausgewählte löschen ({{ selectedCount }})
+                </sw-button>
+            </sw-container>
 
             <sw-data-grid
                 v-if="items.length > 0"
@@ -64,10 +74,11 @@
                     { property: 'language_name', label: 'Sprache', allowResize: true },
                     { property: 'last_searched', label: 'Zuletzt gesucht', allowResize: true, sortable: true }
                 ]"
-                :showSelection="false"
+                :showSelection="true"
                 :sortBy="sortBy"
                 :sortDirection="sortDirection"
                 @column-sort="onSort"
+                @selection-change="onSelectionChange"
             >
                 <template #actions="{ item }">
                     <sw-context-menu-item
@@ -100,6 +111,31 @@
                     variant="danger"
                     size="small"
                     @click="onConfirmDelete"
+                >
+                    Löschen
+                </sw-button>
+            </template>
+        </sw-modal>
+
+        <sw-modal
+            v-if="showBulkDeleteModal"
+            title="Mehrere Suchbegriffe löschen"
+            variant="small"
+            @modal-close="onCloseBulkDeleteModal"
+        >
+            <p>
+                <strong>{{ selectedCount }}</strong> Begriff(e) werden unwiderruflich gelöscht.
+                Fortfahren?
+            </p>
+
+            <template #modal-footer>
+                <sw-button size="small" @click="onCloseBulkDeleteModal">
+                    Abbrechen
+                </sw-button>
+                <sw-button
+                    variant="danger"
+                    size="small"
+                    @click="onConfirmBulkDelete"
                 >
                     Löschen
                 </sw-button>
