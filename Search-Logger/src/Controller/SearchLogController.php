@@ -68,8 +68,8 @@ class SearchLogController extends AbstractController
                 COUNT(*) AS search_count,
                 MAX(created_at) AS last_searched,
                 MAX(result_count) AS result_count,
-                LOWER(HEX(sales_channel_id)) AS sales_channel_id,
-                LOWER(HEX(language_id)) AS language_id
+                MAX(sales_channel_id) AS sales_channel_id_raw,
+                MAX(language_id) AS language_id_raw
             FROM swag_search_log
         ';
 
@@ -90,8 +90,21 @@ class SearchLogController extends AbstractController
         $rows = $this->connection->fetchAllAssociative($sql, $params);
 
         foreach ($rows as &$row) {
-            $row['sales_channel_name'] = $this->resolveName($this->salesChannelMap, $row['sales_channel_id'] ?? '');
-            $row['language_name'] = $this->resolveName($this->languageMap, $row['language_id'] ?? '');
+            $salesChannelHex = isset($row['sales_channel_id_raw']) && $row['sales_channel_id_raw'] !== null
+                ? bin2hex($row['sales_channel_id_raw'])
+                : '';
+
+            $languageHex = isset($row['language_id_raw']) && $row['language_id_raw'] !== null
+                ? bin2hex($row['language_id_raw'])
+                : '';
+
+            $row['sales_channel_id'] = $salesChannelHex;
+            $row['language_id'] = $languageHex;
+
+            $row['sales_channel_name'] = $this->resolveName($this->salesChannelMap, $salesChannelHex);
+            $row['language_name'] = $this->resolveName($this->languageMap, $languageHex);
+
+            unset($row['sales_channel_id_raw'], $row['language_id_raw']);
         }
         unset($row);
 
