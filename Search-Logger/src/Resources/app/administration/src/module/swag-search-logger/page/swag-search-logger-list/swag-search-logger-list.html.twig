@@ -5,7 +5,7 @@
                 <sw-text-field
                     v-model="searchTerm"
                     label="Nach Suchbegriff filtern"
-                    placeholder="z. B. Bewässerungsmatte"
+                    placeholder="z. B. Lukas ist toll"
                     @update:modelValue="onSearchTermChange"
                 />
 
@@ -59,5 +59,31 @@
             </sw-data-grid>
             <p v-else>Keine Suchanfragen vorhanden.</p>
         </sw-card>
+
+        <!-- NEU: Bestätigungsdialog -->
+        <sw-modal
+            v-if="showDeleteModal"
+            title="Suchbegriff löschen"
+            variant="small"
+            @modal-close="onCloseDeleteModal"
+        >
+            <p>
+                Alle Einträge für <strong>"{{ termToDelete }}"</strong> werden unwiderruflich gelöscht.
+                Fortfahren?
+            </p>
+
+            <template #modal-footer>
+                <sw-button size="small" @click="onCloseDeleteModal">
+                    Abbrechen
+                </sw-button>
+                <sw-button
+                    variant="danger"
+                    size="small"
+                    @click="onConfirmDelete"
+                >
+                    Löschen
+                </sw-button>
+            </template>
+        </sw-modal>
     </template>
 </sw-page>
