@@ -39,37 +39,43 @@ class SearchLogController extends AbstractController
         $params = [];
 
         if ($term !== '') {
-            $where[] = 'term LIKE :term';
+            $where[] = 'log.term LIKE :term';
             $params['term'] = '%' . $term . '%';
         }
 
         if ($dateFrom !== '') {
-            $where[] = 'created_at >= :dateFrom';
+            $where[] = 'log.created_at >= :dateFrom';
             $params['dateFrom'] = $dateFrom . ' 00:00:00.000';
         }
 
         if ($dateTo !== '') {
-            $where[] = 'created_at <= :dateTo';
+            $where[] = 'log.created_at <= :dateTo';
             $params['dateTo'] = $dateTo . ' 23:59:59.999';
         }
 
         $sql = '
             SELECT
-                term,
+                log.term,
                 COUNT(*) AS search_count,
-                MAX(created_at) AS last_searched,
-                MAX(result_count) AS result_count
-            FROM swag_search_log
+                MAX(log.created_at) AS last_searched,
+                MAX(log.result_count) AS result_count,
+                log.sales_channel_id,
+                log.language_id,
+                sc.name AS sales_channel_name,
+                lang.name AS language_name
+            FROM swag_search_log log
+            LEFT JOIN sales_channel sc ON sc.id = log.sales_channel_id
+            LEFT JOIN language lang ON lang.id = log.language_id
         ';
 
         if (!empty($where)) {
             $sql .= ' WHERE ' . implode(' AND ', $where);
         }
 
-        $sql .= ' GROUP BY term ';
+        $sql .= ' GROUP BY log.term, log.sales_channel_id, log.language_id, sc.name, lang.name ';
 
         if ($onlyZeroResults) {
-            $sql .= ' HAVING MAX(result_count) = 0 ';
+            $sql .= ' HAVING MAX(log.result_count) = 0 ';
         }
 
         $sql .= ' ORDER BY ' . $sortBy . ' ' . $sortDirection . ' ';
