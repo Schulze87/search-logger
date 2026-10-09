@@ -42,14 +42,6 @@ Shopware.Component.register('swag-search-logger-list', {
     watch: {
         onlyZeroResults() {
             this.loadItems();
-        },
-
-        salesChannelId() {
-            this.loadItems();
-        },
-
-        languageId() {
-            this.loadItems();
         }
     },
 
@@ -125,6 +117,16 @@ Shopware.Component.register('swag-search-logger-list', {
         },
 
         onFilterChange() {
+            this.loadItems();
+        },
+
+        onSalesChannelChange(value) {
+            this.salesChannelId = value ?? null;
+            this.loadItems();
+        },
+
+        onLanguageChange(value) {
+            this.languageId = value ?? null;
             this.loadItems();
         },
 
