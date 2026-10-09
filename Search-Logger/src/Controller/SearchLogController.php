@@ -2,6 +2,7 @@
 
 namespace Swag\SearchLogger\Controller;
 
+use Doctrine\DBAL\ArrayParameterType;
 use Doctrine\DBAL\Connection;
 use Symfony\Bundle\FrameworkBundle\Controller\AbstractController;
 use Symfony\Component\HttpFoundation\JsonResponse;
@@ -113,6 +114,9 @@ class SearchLogController extends AbstractController
             $row['sales_channel_id'] = $salesChannelHex;
             $row['language_id'] = $languageHex;
 
+            // Eindeutige ID pro Zeile für die DataGrid-Auswahl
+            $row['id'] = md5($row['term'] . '|' . $salesChannelHex . '|' . $languageHex);
+
             $row['sales_channel_name'] = $this->resolveName($this->salesChannelMap, $salesChannelHex);
             $row['language_name'] = $this->resolveName($this->languageMap, $languageHex);
 
@@ -162,7 +166,7 @@ class SearchLogController extends AbstractController
         $deleted = $this->connection->executeStatement(
             'DELETE FROM swag_search_log WHERE term IN (:terms)',
             ['terms' => $terms],
-            ['terms' => \Doctrine\DBAL\ArrayParameterType::STRING]
+            ['terms' => ArrayParameterType::STRING]
         );
 
         return new JsonResponse([
@@ -177,13 +181,11 @@ class SearchLogController extends AbstractController
      */
     private function extractTerms(Request $request): array
     {
-        // Einzelner Begriff (alte Route)
         $term = trim((string) $request->query->get('term', ''));
         if ($term !== '') {
             return [$term];
         }
 
-        // Mehrere Begriffe (neue Route)
         $terms = $request->query->all('terms');
         if (!is_array($terms)) {
             return [];
