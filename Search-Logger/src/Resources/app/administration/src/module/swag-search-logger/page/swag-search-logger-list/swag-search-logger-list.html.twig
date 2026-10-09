@@ -1,7 +1,7 @@
 <sw-page>
     <template #content>
         <sw-card title="Suchanfragen" :isLoading="isLoading">
-            <sw-container columns="1fr 1fr 1fr" gap="16px">
+            <sw-container columns="1fr 1fr 1fr 1fr" gap="16px">
                 <sw-text-field
                     v-model="searchTerm"
                     label="Nach Suchbegriff filtern"
@@ -20,6 +20,12 @@
                     v-model="dateTo"
                     label="Bis"
                     dateType="date"
+                    @update:modelValue="onFilterChange"
+                />
+
+                <sw-switch-field
+                    v-model="onlyZeroResults"
+                    label="Nur ohne Ergebnisse"
                     @update:modelValue="onFilterChange"
                 />
             </sw-container>
@@ -41,7 +47,16 @@
                 :sortBy="sortBy"
                 :sortDirection="sortDirection"
                 @column-sort="onSort"
-            />
+            >
+                <template #actions="{ item }">
+                    <sw-context-menu-item
+                        variant="danger"
+                        @click="onDelete(item.term)"
+                    >
+                        Löschen
+                    </sw-context-menu-item>
+                </template>
+            </sw-data-grid>
             <p v-else>Keine Suchanfragen vorhanden.</p>
         </sw-card>
     </template>
