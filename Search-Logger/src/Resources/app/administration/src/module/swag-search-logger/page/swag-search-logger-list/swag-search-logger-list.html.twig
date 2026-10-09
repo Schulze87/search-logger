@@ -5,7 +5,7 @@
                 <sw-text-field
                     v-model="searchTerm"
                     label="Nach Suchbegriff filtern"
-                    placeholder="z. B. Lukas ist toll"
+                    placeholder="z. B. Bewässerungsmatte"
                     @update:modelValue="onSearchTermChange"
                 />
 
@@ -74,6 +74,7 @@
                     { property: 'language_name', label: 'Sprache', allowResize: true },
                     { property: 'last_searched', label: 'Zuletzt gesucht', allowResize: true, sortable: true }
                 ]"
+                identifier="id"
                 :showSelection="true"
                 :sortBy="sortBy"
                 :sortDirection="sortDirection"
