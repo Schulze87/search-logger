@@ -19,6 +19,12 @@ Shopware.Component.register('swag-search-logger-list', {
         };
     },
 
+    watch: {
+        onlyZeroResults() {
+            this.loadItems();
+        }
+    },
+
     created() {
         this.loadItems();
     },
