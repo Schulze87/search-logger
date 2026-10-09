@@ -26,19 +26,21 @@
 
             <sw-container columns="1fr 1fr 1fr" gap="16px">
                 <sw-single-select
-                    v-model="salesChannelId"
+                    :value="salesChannelId"
                     label="Verkaufskanal"
                     :options="salesChannelSelectOptions"
                     :clearable="true"
                     placeholder="Alle Verkaufskanäle"
+                    @update:value="onSalesChannelChange"
                 />
 
                 <sw-single-select
-                    v-model="languageId"
+                    :value="languageId"
                     label="Sprache"
                     :options="languageSelectOptions"
                     :clearable="true"
                     placeholder="Alle Sprachen"
+                    @update:value="onLanguageChange"
                 />
 
                 <sw-switch-field
